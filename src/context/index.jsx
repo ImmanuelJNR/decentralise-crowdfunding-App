@@ -56,30 +56,85 @@ export const StateContextProvider = ({ children }) => {
     checkWalletConnection();
   }, []);
 
+  // const connectWallet = async () => {
+  //   try {
+  //     const { ethereum } = window;
+  //     if (!ethereum) return alert("Please install Metamask");
+
+  //     const accounts = await ethereum.request({
+  //       method: "eth_requestAccounts",
+  //     });
+  //     setAddress(accounts[0]);
+
+  //     const providerInstance = new ethers.BrowserProvider(window.ethereum);
+  //     const signerInstance = await providerInstance.getSigner();
+  //     setProvider(providerInstance);
+  //     setSigner(signerInstance);
+
+  //     const contractInstance = new ethers.Contract(
+  //       contractAddress,
+  //       contractABI,
+  //       signerInstance
+  //     );
+  //     console.log("Contract initialised:", contractInstance);
+  //     setContract(contractInstance);
+  //   } catch (error) {
+  //     console.error("Error connecting wallet:", error);
+  //   }
+  // };
+
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
-      if (!ethereum) return alert("Please install Metamask");
 
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setAddress(accounts[0]);
+      if (ethereum) {
+        const accounts = await ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        setAddress(accounts[0]);
 
-      const providerInstance = new ethers.BrowserProvider(window.ethereum);
-      const signerInstance = await providerInstance.getSigner();
-      setProvider(providerInstance);
-      setSigner(signerInstance);
+        const providerInstance = new ethers.BrowserProvider(ethereum);
+        const signerInstance = await providerInstance.getSigner();
+        setProvider(providerInstance);
+        setSigner(signerInstance);
 
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signerInstance
-      );
-      console.log("Contract initialised:", contractInstance);
-      setContract(contractInstance);
+        const contractInstance = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signerInstance
+        );
+        setContract(contractInstance);
+      } else {
+        // Use WalletConnect
+        const WalletConnectProvider = (
+          await import("@walletconnect/web3-provider")
+        ).default;
+
+        const walletConnectProvider = new WalletConnectProvider({
+          rpc: {
+            1: "https://rpc.ankr.com/eth_sepolia", // Replace with your RPC URL
+          },
+        });
+
+        await walletConnectProvider.enable();
+        const providerInstance = new ethers.BrowserProvider(
+          walletConnectProvider
+        );
+        const signerInstance = await providerInstance.getSigner();
+
+        setProvider(providerInstance);
+        setSigner(signerInstance);
+
+        const contractInstance = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signerInstance
+        );
+        setContract(contractInstance);
+      }
     } catch (error) {
       console.error("Error connecting wallet:", error);
+      alert("Failed to connect wallet.");
     }
   };
 
