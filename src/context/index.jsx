@@ -112,7 +112,7 @@ export const StateContextProvider = ({ children }) => {
 
         const walletConnectProvider = new WalletConnectProvider({
           rpc: {
-            1: "https://rpc.ankr.com/eth_sepolia", // Replace with your RPC URL
+            11155111: "https://rpc.ankr.com/eth_sepolia", // Replace with your RPC URL
           },
         });
 
